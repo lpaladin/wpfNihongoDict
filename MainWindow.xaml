@@ -1,0 +1,57 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:wpfNihongoDict"
+        xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="wpfNihongoDict.MainWindow"
+        mc:Ignorable="d"
+        x:Name="window"
+        Title="MainWindow" Height="350" Width="781.951" KeyDown="window_KeyDown" Closing="window_Closing">
+    <Window.Resources>
+        <local:SummaryConverter x:Key="summaryConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="160"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <GridSplitter x:Name="gridSplitter" HorizontalAlignment="Stretch" Margin="0,0,0.4,0" Height="2" VerticalAlignment="Bottom" Focusable="False" IsTabStop="False"/>
+        <Button x:Name="btnLoadDict" Content="载入词库" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="btnLoadDict_Click" Focusable="False" IsTabStop="False"/>
+        <GroupBox x:Name="groupBox" Header="进度" Margin="10,34,10.4,10">
+            <Grid Margin="0">
+                <ComboBox x:Name="cmbQuestionMode" HorizontalAlignment="Left" Margin="49,12,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="2" IsReadOnly="True" Height="21" Focusable="False" IsTabStop="False">
+                    <System:String>日文汉字 -&gt; 假名</System:String>
+                    <System:String>假名 -&gt; 汉语拼音</System:String>
+                    <System:String>兼有</System:String>
+                </ComboBox>
+                <Label x:Name="label" Content="题型" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="26" Width="34"/>
+                <Label x:Name="lblQuestionStat" Margin="10,0,0,9.6" HorizontalAlignment="Left" Width="159" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" Height="43" VerticalAlignment="Bottom">
+                    <Label.Effect>
+                        <DropShadowEffect ShadowDepth="1"/>
+                    </Label.Effect>
+                    <Label.Content>
+                        <MultiBinding Converter="{StaticResource summaryConverter}">
+                            <Binding Path="SuccessCount" ElementName="window"/>
+                            <Binding Path="FailCount" ElementName="window"/>
+                        </MultiBinding>
+                    </Label.Content>
+                </Label>
+                <ListBox x:Name="lstLog" Margin="174,10,9.8,9.6" Focusable="False"/>
+            </Grid>
+        </GroupBox>
+        <Button x:Name="btnReset" Content="复位" Margin="0,10,10.4,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="75" Click="btnReset_Click" Focusable="False" IsTabStop="False"/>
+        <TextBox x:Name="txtFilePath" Height="19" Margin="90,10,90.4,0" TextWrapping="Wrap" VerticalAlignment="Top" IsEnabled="False" Text="{Binding Path=DictPath, ElementName=window}" Focusable="False" IsTabStop="False" />
+        <Button x:Name="btnSkip" Content="开始/跳过（Tab）" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" VerticalAlignment="Top" Click="btnSkip_Click" Focusable="False" IsTabStop="False">
+            <Button.Effect>
+                <DropShadowEffect Color="#FFA5CAFF" Opacity="0.5"/>
+            </Button.Effect>
+        </Button>
+        <TextBlock HorizontalAlignment="Center" Margin="0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center">
+            <Run x:Name="txtAnnotation" FontSize="16">注音符号</Run>
+            <LineBreak />
+            <Run x:Name="txtKanji" FontSize="32">汉字</Run>
+        </TextBlock>
+        <TextBox x:Name="txtInputBuffer" Margin="10,0,10.4,9.8" Grid.Row="1" TextWrapping="Wrap" Height="23" VerticalAlignment="Bottom" Text="{Binding Path=InputBuffer, ElementName=window}" IsEnabled="False" Focusable="False" IsTabStop="False"/>
+    </Grid>
+</Window>
