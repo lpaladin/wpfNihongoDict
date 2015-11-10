@@ -125,6 +125,15 @@ namespace wpfNihongoDict
         private Random rand = new Random();
         private Word currentWord;
         private int currentKanjiIndex, currentKanaIndex, successCount = 0, failCount = 0;
+        private Dictionary<char, char> kanji2Hanzi = new Dictionary<char, char>()
+        {
+            { '図', '图' },
+            { '気', '气' },
+            { '発', '发' },
+            { '舎', '舍' },
+            { '駅', '驿' },
+            { '売', '卖' }
+        };
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -352,12 +361,17 @@ namespace wpfNihongoDict
             {
                 try
                 {
-                    ChineseChar chr = new ChineseChar(currentWord.Kanji[currentKanjiIndex]);
+                    char kanji = currentWord.Kanji[currentKanjiIndex], hanzi;
+                    if (kanji == '々')
+                        kanji = currentWord.Kanji[currentKanjiIndex - 1];
+                    if (kanji2Hanzi.TryGetValue(kanji, out hanzi))
+                        kanji = hanzi;
+                    ChineseChar chr = new ChineseChar(kanji);
                     foreach (string pinyin in chr.Pinyins)
                         if (pinyin != null && content == pinyin.Substring(0, pinyin.Length - 1).ToLower())
                         {
                             // 增加一个汉字到大字行
-                            txtKanji.Text += chr.ChineseCharacter;
+                            txtKanji.Text += currentWord.Kanji[currentKanjiIndex];
 
                             // 清空缓冲区
                             txtInputBuffer.Clear();
@@ -382,6 +396,7 @@ namespace wpfNihongoDict
                         (kana.Length == 3 || // 促音 + 拗音，相等就一定可以输入
                         (currentWord.Kanji[currentKanjiIndex] == 'っ' && kana.Length == 2 &&
                         currentWord.Kanji.IndexOfAny(new[] { 'ゃ', 'ゅ', 'ょ' }, currentKanjiIndex + 2) != currentKanjiIndex + 2) || // 促音非拗音，第三个字不是拗音即可
+                        (currentWord.Kana[currentKanaIndex] != 'っ' && kana.Length == 2) || // 非促音拗音
                         (currentWord.Kanji[currentKanjiIndex] != 'っ' && kana.Length == 1 &&
                         currentWord.Kanji.IndexOfAny(new[] { 'ゃ', 'ゅ', 'ょ' }, currentKanjiIndex + 1) != currentKanjiIndex + 1) // 非促音非拗音，第二个字不是拗音即可
                         ))
@@ -412,6 +427,7 @@ namespace wpfNihongoDict
                     (kana.Length == 3 || // 促音 + 拗音，相等就一定可以输入
                         (currentWord.Kana[currentKanaIndex] == 'っ' && kana.Length == 2 &&
                         currentWord.Kana.IndexOfAny(new[] { 'ゃ', 'ゅ', 'ょ' }, currentKanaIndex + 2) != currentKanaIndex + 2) || // 促音非拗音，第三个字不是拗音即可
+                        (currentWord.Kana[currentKanaIndex] != 'っ' && kana.Length == 2) || // 非促音拗音
                         (currentWord.Kana[currentKanaIndex] != 'っ' && kana.Length == 1 &&
                         currentWord.Kana.IndexOfAny(new[] { 'ゃ', 'ゅ', 'ょ' }, currentKanaIndex + 1) != currentKanaIndex + 1) // 非促音非拗音，第二个字不是拗音即可
                         ))
