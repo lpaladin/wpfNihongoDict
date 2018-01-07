@@ -52,6 +52,6 @@
             <LineBreak />
             <Run x:Name="txtKanji" FontSize="32">汉字</Run>
         </TextBlock>
-        <TextBox x:Name="txtInputBuffer" Margin="10,0,10.4,9.8" Grid.Row="1" TextWrapping="Wrap" Height="23" VerticalAlignment="Bottom" Text="{Binding Path=InputBuffer, ElementName=window}" IsEnabled="False" Focusable="False" IsTabStop="False"/>
+        <TextBox x:Name="txtInputBuffer" Margin="10,0,10.4,9.8" Grid.Row="1" TextWrapping="Wrap" Height="23" VerticalAlignment="Bottom" IsEnabled="False" Focusable="False" IsTabStop="False"/>
     </Grid>
 </Window>

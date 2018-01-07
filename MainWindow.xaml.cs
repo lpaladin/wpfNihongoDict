@@ -14,55 +14,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace wpfNihongoDict
 {
-    [Serializable]
-    public class Word : IComparable
-    {
-        public string Kana { get; set; }
-        public string Kanji { get; set; }
-        public int Kana2KanjiSuccessCount { get; set; }
-        public int Kana2KanjiFailCount { get; set; }
-        public int Kanji2KanaSuccessCount { get; set; }
-        public int Kanji2KanaFailCount { get; set; }
-        public List<string> Romaji;
 
-        public Word(string str)
-        {
-            Kana2KanjiFailCount = 0;
-            Kana2KanjiSuccessCount = 0;
-            Kanji2KanaFailCount = 0;
-            Kanji2KanaSuccessCount = 0;
-            bool state = false;
-            foreach (string s in str.Replace('ｎ', 'ん').Replace('Ｎ', 'ン').Split('\t', ' '))
-                if (s != "")
-                    if (!state)
-                    {
-                        Kanji = s;
-                        state = true;
-                    }
-                    else
-                    {
-                        Kana = s;
-                        break;
-                    }
-        }
-
-        private double Rank
-        {
-            get
-            {
-                return Kana2KanjiFailCount / (Kana2KanjiSuccessCount + 0.1) + (Kanji2KanaFailCount / (Kanji2KanaSuccessCount + 0.1)) * 2;
-            }
-        }
-
-        public int CompareTo(object obj)
-        {
-            if (obj as Word == null)
-                return -1;
-            return -Rank.CompareTo((obj as Word).Rank);
-        }
-    }
-
-    public class SummaryConverter : IMultiValueConverter
+	public class SummaryConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
@@ -125,15 +78,7 @@ namespace wpfNihongoDict
         private Random rand = new Random();
         private Word currentWord;
         private int currentKanjiIndex, currentKanaIndex, successCount = 0, failCount = 0;
-        private Dictionary<char, char> kanji2Hanzi = new Dictionary<char, char>()
-        {
-            { '図', '图' },
-            { '気', '气' },
-            { '発', '发' },
-            { '舎', '舍' },
-            { '駅', '驿' },
-            { '売', '卖' }
-        };
+        private Dictionary<char, List<char>> kanji2Hanzi = KanjiToHanzi.ToDictionary();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -361,32 +306,35 @@ namespace wpfNihongoDict
             {
                 try
                 {
-                    char kanji = currentWord.Kanji[currentKanjiIndex], hanzi;
-                    if (kanji == '々')
-                        kanji = currentWord.Kanji[currentKanjiIndex - 1];
-                    if (kanji2Hanzi.TryGetValue(kanji, out hanzi))
-                        kanji = hanzi;
-                    ChineseChar chr = new ChineseChar(kanji);
-                    foreach (string pinyin in chr.Pinyins)
-                        if (pinyin != null && content == pinyin.Substring(0, pinyin.Length - 1).ToLower())
-                        {
-                            // 增加一个汉字到大字行
-                            txtKanji.Text += currentWord.Kanji[currentKanjiIndex];
+					char[] kanjis = new[] { currentWord.Kanji[currentKanjiIndex] };
+					if (kanjis[0] == '々')
+                        kanjis[0] = currentWord.Kanji[currentKanjiIndex - 1];
+                    if (kanji2Hanzi.TryGetValue(kanjis[0], out List<char> hanzi))
+                        kanjis = hanzi.ToArray();
+					foreach (char kanji in kanjis)
+					{
+						ChineseChar chr = new ChineseChar(kanji);
+						foreach (string pinyin in chr.Pinyins)
+							if (pinyin != null && content == pinyin.Substring(0, pinyin.Length - 1).ToLower())
+							{
+								// 增加一个汉字到大字行
+								txtKanji.Text += currentWord.Kanji[currentKanjiIndex];
 
-                            // 清空缓冲区
-                            txtInputBuffer.Clear();
+								// 清空缓冲区
+								txtInputBuffer.Clear();
 
-                            if (++currentKanjiIndex == currentWord.Kanji.Length)
-                            {
-                                SuccessCount++;
-                                currentWord.Kana2KanjiSuccessCount++;
-                                PushLog("完成了词 " + currentWord.Kanji + " 的汉字输入");
-                                isInputMode = false;
-                            }
-                            return;
-                        }
+								if (++currentKanjiIndex == currentWord.Kanji.Length)
+								{
+									SuccessCount++;
+									currentWord.Kana2KanjiSuccessCount++;
+									PushLog("完成了词 " + currentWord.Kanji + " 的汉字输入");
+									isInputMode = false;
+								}
+								return;
+							}
+					}
                 }
-                catch (NotSupportedException)
+                catch (NotSupportedException) // 非汉字
                 {
                     // 如果词语是混合词
                     string kana = KanaConverter.RomajiToHiragana(content);
